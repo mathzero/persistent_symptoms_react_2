@@ -914,13 +914,24 @@ PermuteCatboost <- function(mymodel,X, y, nperm = 100, lossmeasure="auc"){
   
   ### Calculate proportion of permuted runs that had a superior log loss to the unpermuted
   results.df$prop_permutes_greater_than_unpermute <- colSums(perm_df>=loss_full) /nperm
-  
+
   ### Get deltas
-  results.df$mean_loss_permute_delta =abs(loss_full-results.df$mean_loss_permute)
-  results.df$mean_loss_permute_delta_lower <-abs(results.df$mean_loss_permute_delta- 1.96*(
+  if(lossmeasure=="auc"){
+    
+  results.df$mean_loss_permute_delta =(loss_full-results.df$mean_loss_permute)
+  results.df$mean_loss_permute_delta_lower <-(results.df$mean_loss_permute_delta- 1.96*(
     results.df$SD_loss_permute) / sqrt(nperm))
-  results.df$mean_loss_permute_delta_upper <- abs(results.df$mean_loss_permute_delta+ 1.96*(
+  results.df$mean_loss_permute_delta_upper <- (results.df$mean_loss_permute_delta+ 1.96*(
     results.df$SD_loss_permute) / sqrt(nperm))
+  }else if(lossmeasure=="logloss"){
+    
+  results.df$mean_loss_permute_delta = (results.df$mean_loss_permute-loss_full)
+  results.df$mean_loss_permute_delta_lower <- (results.df$mean_loss_permute_delta- 1.96*(
+    results.df$SD_loss_permute) / sqrt(nperm))
+  results.df$mean_loss_permute_delta_upper <- (results.df$mean_loss_permute_delta+ 1.96*(
+    results.df$SD_loss_permute) / sqrt(nperm))
+    
+  }
   
   return(list(summary_stats=results.df,
               full_results=perm_df_long))
@@ -1311,4 +1322,5 @@ getFeatureImpAndSHAP <- function(cb_model, validation_pool, learn_pool,
               shaps=plot1,
               shap_mean=p_shap_mean))
 }
+
 
